@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { randomBytes, createHash } from "crypto";
 
 const userSchema = new mongoose.Schema(
     {
@@ -42,17 +43,17 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 userSchema.methods.getResetPasswordToken = function () {
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetToken = randomBytes(32).toString("hex");
 
-    this.resetPasswordToken = crypto
-        .createHash("sha256")
+    this.resetPasswordToken = createHash("sha256")
         .update(resetToken)
         .digest("hex");
 
-    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // token expires in 10 minutes
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     return resetToken;
 };
+
 
 const User = mongoose.model("User", userSchema);
 export default User;
