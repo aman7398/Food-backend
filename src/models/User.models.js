@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema(
             unique: true,
             lowercase: true,
         },
+        mobile: {
+            type: String,
+            required: true,
+            unique: true,
+        },
         password: {
             type: String,
             required: true,
@@ -24,6 +29,16 @@ const userSchema = new mongoose.Schema(
             type: String,
             enum: ["user", "admin"],
             default: "user",
+        },
+        isverified: {
+            type: Boolean,
+            default: false,
+        },
+        otp: {
+            type: String,
+        },
+        otpExpire: {
+            type: Date,
         },
         resetPasswordToken: {
             type: String,
@@ -53,6 +68,13 @@ userSchema.methods.getResetPasswordToken = function () {
 
     return resetToken;
 };
+
+userSchema.methods.generateOTP = function () {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    this.otp = createHash("sha256").update(otp).digest("hex");
+    this.otpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    return otp;
+}
 
 
 const User = mongoose.model("User", userSchema);

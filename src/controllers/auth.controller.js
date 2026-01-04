@@ -1,48 +1,111 @@
 import User from "../models/User.models.js";
 import generateToken from "../utils/generateToken.js";
+import { createHash } from "crypto";
+
+// export const registerUser = async (req, res) => {
+//     try {
+//         console.log("REQ BODY", req.body);
+
+//         const { name, email, mobile, password } = req.body;
+//         if (!name || !email || !mobile || !password) {
+//             return res.status(400).json({ message: "All fields required" });
+//         }
+//         const userExists = await User.findOne({
+//             $or: [{ email }, { mobile }],
+//         });
+//         console.log("USER EXISTS", userExists);
+
+//         if (userExists) {
+//             return res.status(400).json({ message: "User already exists" });
+//         }
+//         const user = await User.create({
+//             name,
+//             email,
+//             mobile,
+//             password,
+//             role: "user",
+//         });
+//         console.log("USER CREATED", user);
+
+//         const otp = user.generateOTP();
+//         await user.save({ validateBeforeSave: false });
+
+//         console.log("USER SAVED WITH OTP", user, otp);
+
+//         res.status(200).json({
+//             message: "OTP sent to your mobile number",
+//             userId: user._id,
+//         });
+
+//         return res.status(201).json({
+//             _id: user._id,
+//             name: user.name,
+//             email: user.email,
+//             mobile: user.mobile,
+//             role: user.role,
+//             token: generateToken(user._id),
+//         });
+
+//     } catch (error) {
+//         console.error("REGISTER ERROR FULL");
+//         console.error(error);
+//         console.error(error.message);
+//         res.status(500).json({ message: error.message });
+//         console.error(error.stack);
+
+//         return res.status(500).json({
+//             message: "Register failed",
+//             error: error.message,
+//         });
+//     }
+// };
 
 export const registerUser = async (req, res) => {
     try {
-        console.log("REQ BODY", req.body);
+        const { name, email, mobile, password } = req.body;
 
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
+        if (!name || !email || !mobile || !password) {
             return res.status(400).json({ message: "All fields required" });
         }
-        const userExists = await User.findOne({ email });
-        console.log("USER EXISTS", userExists);
+
+        const userExists = await User.findOne({
+            $or: [{ email }, { mobile }],
+        });
 
         if (userExists) {
             return res.status(400).json({ message: "User already exists" });
         }
+
         const user = await User.create({
             name,
             email,
+            mobile,
             password,
             role: "user",
         });
-        console.log("USER CREATED", user);
+
+        // otp genrate and save
+        const otp = user.generateOTP();
+        await user.save({ validateBeforeSave: false });
+
+        console.log("REGISTER OTP:", otp);
 
         return res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            token: generateToken(user._id),
+            success: true,
+            userCreated: true,
+            isVerified: false,
+            message: "OTP sent to your mobile number. Please verify to continue.",
+            userId: user._id,
         });
-
     } catch (error) {
-        console.error("REGISTER ERROR FULL");
-        console.error(error);
-        console.error(error.message);
-        console.error(error.stack);
-
+        console.error("REGISTER ERROR:", error);
         return res.status(500).json({
             message: "Register failed",
             error: error.message,
         });
     }
 };
+
 export const loginUser = async (req, res) => {
     try {
 
@@ -90,4 +153,37 @@ export const loginUser = async (req, res) => {
 export const logout = (req, res) => {
     res.clearCookie("token");
     res.status(200).json({ message: "Logged out successfully" });
+};
+
+export const verifyOPT = async (req, res) => {
+    try {
+        const { mobile, otp } = req.body;
+        if (!mobile || !otp) {
+            return res.status(400).json({ message: "Mobile and OTP are required" });
+        }
+        const hashedOtp = createHash("sha256").update(otp).digest("hex");
+        const user = await User.findOne({
+            mobile,
+            otp: hashedOtp,
+            otpExpire: { $gt: Date.now() },
+        });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid OTP or OTP expired" });
+        }
+        user.isverified = true;
+        user.otp = undefined;
+        user.otpExpire = undefined;
+
+        await user.save();
+        return res.status(200).json({
+            message: "OTP verified successfully",
+            token: generateToken(user._id),
+        });
+    } catch (error) {
+        console.error("VERIFY OTP ERROR:", error);
+        return res.status(500).json({
+            message: "OTP verification failed",
+            error: error.message,
+        });
+    }
 };
