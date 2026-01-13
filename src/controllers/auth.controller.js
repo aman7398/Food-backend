@@ -127,6 +127,9 @@ export const loginUser = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
+        if (!user.isVerified) {
+            return res.status(403).json({ message: "Please verify OTP first" });
+        }
 
         console.log("USER LOGGED IN", user);
 
@@ -183,6 +186,38 @@ export const verifyOPT = async (req, res) => {
         console.error("VERIFY OTP ERROR:", error);
         return res.status(500).json({
             message: "OTP verification failed",
+            error: error.message,
+        });
+    }
+};
+
+export const resendOTP = async (req, res) => {
+    try {
+        const { mobile } = req.body;
+        if (!mobile) {
+            return res.status(400).json({ message: "Mobile number is required" });
+        }
+        const user = await User.findOne({ mobile });
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
+
+        if (user.isverified) {
+            return res.status(400).json({
+                message: "User already verified",
+            });
+        }
+
+        const otp = user.generateOTP();
+        await user.save({ validateBeforeSave: false });
+        console.log("RESEND OTP:", otp);
+        return res.status(200).json({
+            message: "OTP sent to your mobile number",
+        });
+    } catch (error) {
+        console.error("RESEND OTP ERROR:", error);
+        return res.status(500).json({
+            message: "Resend OTP failed",
             error: error.message,
         });
     }
