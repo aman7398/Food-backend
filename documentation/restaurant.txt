@@ -1,0 +1,11 @@
+tested APIs:
+    router.post("/", auth createRestaurant)
+    router.get("/", auth, restaurantAdmin, getMyRestaurant)
+    router.patch("/:id", auth, restaurantAdmin, updateRestaurant)
+    router.get("/get-all", auth, getRestaurants)
+    router.post("/add-food", auth, restaurantAdmin, addFood);
+    router.patch("/update-food/:id", auth, restaurantAdmin, toggleFood)
+
+
+to be tested:
+    router.post("/approve", auth, isAdmin, approveRestaurant);

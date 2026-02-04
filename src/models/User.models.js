@@ -27,12 +27,20 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["user", "admin"],
+            enum: ["user", "admin", "restaurant_admin"],
             default: "user",
         },
-        isverified: {
+        isVerified: {
             type: Boolean,
             default: false,
+        },
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+        deletedAt: {
+            type: Date,
+            default: null
         },
         otp: {
             type: String,

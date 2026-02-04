@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import User from "../models/User.models.js";
+import User from "../../models/User.models.js";
 
 export const resetPassword = async (req, res) => {
     try {

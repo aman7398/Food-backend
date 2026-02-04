@@ -1,0 +1,5 @@
+setup env for nodemailer
+
+
+To check:
+    is sendEmail in utils working?

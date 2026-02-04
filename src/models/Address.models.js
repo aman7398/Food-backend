@@ -14,6 +14,11 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    label: {
+        type: String,
+        enum: ["HOME", "WORK", "OTHER"],
+        default: "HOME"
+    },
     addressLine: {
         type: String,
         required: true,
@@ -30,6 +35,8 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    lat: Number,
+    lng: Number,
     isDefault: {
         type: Boolean,
         default: false,

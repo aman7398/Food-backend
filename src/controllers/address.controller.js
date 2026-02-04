@@ -1,5 +1,26 @@
 import Address from "../models/Address.models.js";
 
+export const getUserAddress = async (req, res) => {
+    try {
+        const { _id } = req.user
+        const address = await Address.find({ user: _id }).sort({ isDefault: -1, })
+        if (!address) throw new Error("User address not found")
+
+        res.status(200).json({
+            message: "Address found",
+            data: address,
+            success: true,
+            error: false
+        })
+    } catch (error) {
+        res.status(404).json({
+            message: "Error occurred at finding address",
+            success: false,
+            error: true
+        })
+    }
+}
+
 export const addAddress = async (req, res) => {
     try {
         const {
@@ -15,7 +36,7 @@ export const addAddress = async (req, res) => {
         if (!name || !mobile || !addressLine || !city || !state || !pincode) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        console.log("ADDING ADDRESS FOR USER", req.user._id);
+        // console.log("ADDING ADDRESS FOR USER", req.user._id);
         if (isDefault) {
             await Address.updateMany(
                 { user: req.user._id },
@@ -40,7 +61,7 @@ export const addAddress = async (req, res) => {
             data: address,
         });
 
-        console.log("NEW ADDRESS ADDED", address);
+        // console.log("NEW ADDRESS ADDED", address);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -48,16 +69,14 @@ export const addAddress = async (req, res) => {
 
 export const getAddresses = async (req, res) => {
     try {
-        const addresses = await Address.find({ user: req.user._id }).sort({
-            isDefault: -1,
-        });
+        const addresses = await Address.find({ user: req.user._id }).sort({ isDefault: -1, });
 
         res.status(200).json({
             success: true,
             data: addresses,
         });
 
-        console.log("FETCHED ADDRESSES", addresses);
+        // console.log("FETCHED ADDRESSES", addresses);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -75,6 +94,17 @@ export const updateAddress = async (req, res) => {
             return res.status(404).json({ message: "Address not found" });
         }
 
+        // 🔥 If setting this address as default
+        if (req.body.isDefault === true) {
+            await Address.updateMany(
+                {
+                    user: req.user._id,
+                    _id: { $ne: address._id }, // exclude current address
+                },
+                { isDefault: false }
+            );
+        }
+
         Object.assign(address, req.body);
         await address.save();
 
@@ -83,7 +113,8 @@ export const updateAddress = async (req, res) => {
             message: "Address updated successfully",
             data: address,
         });
-        console.log("UPDATED ADDRESS", address);
+
+        // console.log("UPDATED ADDRESS", address);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -104,7 +135,7 @@ export const deleteAddress = async (req, res) => {
             success: true,
             message: "Address deleted successfully",
         });
-        console.log("DELETED ADDRESS", address);
+        // console.log("DELETED ADDRESS", address);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

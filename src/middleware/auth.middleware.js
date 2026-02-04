@@ -18,11 +18,11 @@ const protect = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("TOKEN", token);
-        console.log("DECODED TOKEN", decoded);
+        // console.log("TOKEN", token);
+        // console.log("DECODED TOKEN", decoded);
         const user = await User.findById(decoded.id).select("-password");
 
-        console.log("USER", user);
+        // console.log("USER", user);
 
         req.user = user;
         next();

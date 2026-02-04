@@ -1,6 +1,6 @@
-import User from "../models/User.models.js";
+import User from "../../models/User.models.js";
 // import generateToken from "../utils/generateToken.js";
-import sendEmail from "../utils/sendEmail.js";
+import sendEmail from "../../utils/sendEmail.js";
 
 export const forgotPassword = async (req, res) => {
     try {
@@ -17,12 +17,12 @@ export const forgotPassword = async (req, res) => {
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
         const message = `
-      <h2>Password Reset Request</h2>
-      <p>You requested to reset your password</p>
-      <p>Click below to reset:</p>
-      <a href="${resetUrl}">${resetUrl}</a>
-      <p>This link will expire in 10 minutes</p>
-    `;
+            <h2>Password Reset Request</h2>
+            <p>You requested to reset your password</p>
+            <p>Click below to reset:</p>
+            <a href="${resetUrl}">${resetUrl}</a>
+            <p>This link will expire in 10 minutes</p>
+            `;
 
         await sendEmail({
             email: user.email,
