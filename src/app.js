@@ -13,7 +13,41 @@ import foodRoutes from './routes/food.routes.js';
 
 const app = express();
 
-app.use(cors());
+// ===== CORS (Codespaces + local dev) =====
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  // allow Codespaces subdomains + local dev
+  const isAllowed =
+    !origin ||
+    origin.endsWith(".app.github.dev") ||
+    origin.startsWith("http://localhost") ||
+    origin.startsWith("http://127.0.0.1");
+
+  if (isAllowed && origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+  }
+
+  // handle preflight
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+
+// app.use(cors());
 app.use(express.json());
 
 app.use('/api/v1/auth', authRoutes);
